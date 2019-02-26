@@ -177,5 +177,5 @@ window.onload = function() {
         decideNextMove();
     }
 
-    var loop = setInterval(draw, 50);
+    var loop = setInterval(draw, prompt("Frame Duration: (in milliseconds) (when in doubt, enter 50)"));
 };
