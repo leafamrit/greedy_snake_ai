@@ -1,20 +1,29 @@
 window.onload = function() {
+    var iter = 0;
+    var itermax;
+    var scores = [];
+
     var canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
 
     var unit = 10;
     var xCells = canvas.width / unit;
     var yCells = canvas.height / unit;
-    var snake = [{
-        x: xCells / 2,
-        y: yCells / 2,
-    }];
-    var apple = {
-        x: Math.floor(Math.random() * xCells),
-        y: Math.floor(Math.random() * yCells)
-    };
+    var snake;
+    var apple;
     var direction = "R";
     var scoreboard = document.getElementById("score");
+
+    function reset() {
+        snake = [{
+            x: xCells / 2,
+            y: yCells / 2,
+        }];
+        apple = {
+            x: Math.floor(Math.random() * xCells),
+            y: Math.floor(Math.random() * yCells)
+        };
+    }
 
     document.addEventListener("keydown", function(e) {
         var dir = e.keyCode;
@@ -53,41 +62,19 @@ window.onload = function() {
         }
     }
 
-    function checkCollision() {
+    function collision() {
         // collision with apple
         if(snake[0].x === apple.x && snake[0].y === apple.y) {
-            apple = {
-                x: Math.floor(Math.random() * xCells),
-                y: Math.floor(Math.random() * yCells)
-            };
-            return true;
+            return "A";
         }
 
         if(snake[0].x >= xCells || snake[0].x < 0 || snake[0].y >= yCells || snake[0].y < 0) {
-            clearInterval(loop);
-            setInterval(function() {
-                ctx.fillStyle = "#f00";
-                ctx.fillRect(snake[1].x * unit, snake[1].y * unit, unit, unit);
-                setTimeout(function() {
-                    ctx.fillStyle = "#fff";
-                    ctx.fillRect(snake[1].x * unit, snake[1].y * unit, unit, unit);
-                }, 200);
-            }, 300);
-            return true;
+            return "S";
         }
 
         for(var i = 1; i < snake.length; i++) {
             if(snake[0].x === snake[i].x && snake[0].y === snake[i].y) {
-                clearInterval(loop);
-                setInterval(function() {
-                    ctx.fillStyle = "#f00";
-                    ctx.fillRect(snake[1].x * unit, snake[1].y * unit, unit, unit);
-                    setTimeout(function() {
-                        ctx.fillStyle = "#fff";
-                        ctx.fillRect(snake[1].x * unit, snake[1].y * unit, unit, unit);
-                    }, 200);
-                }, 300);
-                return true;
+                return "S";
             }
         }
     }
@@ -156,6 +143,18 @@ window.onload = function() {
         }
     }
 
+    function stopGame() {
+        clearInterval(loop);
+        setInterval(function() {
+            ctx.fillStyle = "#f00";
+            ctx.fillRect(snake[1].x * unit, snake[1].y * unit, unit, unit);
+            setTimeout(function() {
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(snake[1].x * unit, snake[1].y * unit, unit, unit);
+            }, 200);
+        }, 300);
+    }
+
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // draw background
@@ -170,12 +169,34 @@ window.onload = function() {
             ctx.fillRect(snake[i].x * unit, snake[i].y * unit, unit, unit);
         }
         moveSnake();
-        if(!checkCollision()) {
+        if(collision() === "S") {
+            if(iter < itermax - 1) {
+                scores.push(Number.parseInt(scoreboard.value));
+                iter++;
+                reset();
+            } else {
+                scores.push(Number.parseInt(scoreboard.value));
+                var file = new Blob([scores.toString()], {type: 'text/plain'});
+                var a = document.createElement("a");
+                var url = URL.createObjectURL(file);
+                a.href = url;
+                document.body.appendChild(a);
+                a.click();
+                stopGame();
+            }
+        } else if(collision() === "A") {
+            apple = {
+                x: Math.floor(Math.random() * xCells),
+                y: Math.floor(Math.random() * yCells)
+            };
+        } else {
             snake.pop();
             scoreboard.value = snake.length - 1;
-        };
+        }
         decideNextMove();
     }
 
-    var loop = setInterval(draw, prompt("Frame Duration: (in milliseconds) (when in doubt, enter 50)"));
+    itermax = prompt("Number of iterations: ");
+    reset();
+    var loop = setInterval(draw, 0);
 };
