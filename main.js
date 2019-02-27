@@ -180,8 +180,13 @@ window.onload = function() {
                 var a = document.createElement("a");
                 var url = URL.createObjectURL(file);
                 a.href = url;
+                a.download = itermax + "_scores_run_" + (new Date()).getTime() + ".txt";
                 document.body.appendChild(a);
                 a.click();
+                setTimeout(function() {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 0);
                 stopGame();
             }
         } else if(collision() === "A") {
@@ -196,7 +201,8 @@ window.onload = function() {
         decideNextMove();
     }
 
-    itermax = prompt("Number of iterations: ");
+    var promtedVal = Number.parseInt(prompt("Number of iterations (default: 5): "));
+    itermax = promtedVal > 0 ? promtedVal : 5;
     reset();
     var loop = setInterval(draw, 0);
 };
